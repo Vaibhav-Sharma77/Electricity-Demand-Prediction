@@ -1,0 +1,363 @@
+{% extends "base_optimized.html" %}
+
+{% block title %}PowerPulse Enhanced - Forecast{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Forecast Form -->
+    <div class="col-lg-4 mb-4">
+        <div class="card sticky-top">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog text-primary"></i>
+                    Forecast Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="forecastForm">
+                    <div class="mb-4">
+                        <label for="region" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Region
+                        </label>
+                        <select class="form-select" id="region" required>
+                            <option value="DELHI">DELHI</option>
+                            <option value="BRPL">BRPL</option>
+                            <option value="BYPL">BYPL</option>
+                            <option value="NDPL">NDPL</option>
+                            <option value="NDMC">NDMC</option>
+                            <option value="MES">MES</option>
+                        </select>
+                        <div class="form-text">Select the Delhi region for forecasting</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="date" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Forecast Date
+                        </label>
+                        <input type="date" class="form-control" id="date" value="{{ today }}" required>
+                        <div class="form-text">Choose date for 24-hour forecast</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3" id="forecastBtn">
+                        <i class="fas fa-chart-line"></i> Generate Forecast
+                    </button>
+                    
+                    <button type="button" class="btn btn-success w-100 mb-3" id="chartBtn" style="display: none;" onclick="generateChart()">
+                        <i class="fas fa-chart-bar"></i> View Chart
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearResults()">
+                        <i class="fas fa-trash"></i> Clear Results
+                    </button>
+                </form>
+                
+                <!-- Progress Bar -->
+                <div id="progressContainer" class="mt-3" style="display: none;">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <small class="text-muted mt-2 d-block" id="progressText">Initializing...</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Results Section -->
+    <div class="col-lg-8">
+        <!-- Summary Cards -->
+        <div id="summarySection" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body">
+                            <i class="fas fa-bolt fa-2x mb-2"></i>
+                            <h3 id="peakDemand">-</h3>
+                            <small>Peak Demand (MW)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body">
+                            <i class="fas fa-clock fa-2x mb-2"></i>
+                            <h3 id="peakHour">-</h3>
+                            <small>Peak Hour</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center bg-info text-white">
+                        <div class="card-body">
+                            <i class="fas fa-chart-area fa-2x mb-2"></i>
+                            <h3 id="totalDemand">-</h3>
+                            <small>Daily Total (MWh)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center bg-warning text-white">
+                        <div class="card-body">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <h3 id="confidence">-</h3>
+                            <small>Avg Confidence</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chart Section -->
+        <div id="chartSection" class="card mb-4" style="display: none;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line text-primary"></i>
+                    24-Hour Demand Forecast
+                </h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="downloadChart()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            </div>
+            <div class="card-body text-center">
+                <div id="chartContainer">
+                    <div id="chartLoading" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading chart...</span>
+                        </div>
+                        <p class="mt-2">Generating visualization...</p>
+                    </div>
+                    <div id="chartImage"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Results Table -->
+        <div id="detailsSection" class="card" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-table text-primary"></i>
+                    Hourly Forecast Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="fas fa-clock"></i> Hour</th>
+                                <th><i class="fas fa-thermometer-half"></i> Temp (°C)</th>
+                                <th><i class="fas fa-tint"></i> Humidity (%)</th>
+                                <th><i class="fas fa-wind"></i> Wind (km/h)</th>
+                                <th><i class="fas fa-bolt"></i> Demand (MW)</th>
+                                <th><i class="fas fa-check"></i> Confidence (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- No Results Message -->
+        <div id="noResults" class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Forecast Data</h4>
+                <p class="text-muted">Select a region and date to generate electricity demand forecast</p>
+                <div class="mt-4">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i>
+                        Use the form on the left to start forecasting
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentForecastData = null;
+
+// Forecast form submission
+document.getElementById('forecastForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    generateForecast();
+});
+
+function generateForecast() {
+    const region = document.getElementById('region').value;
+    const date = document.getElementById('date').value;
+    const btn = document.getElementById('forecastBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = progressContainer.querySelector('.progress-bar');
+    const progressText = document.getElementById('progressText');
+    
+    // Show progress
+    progressContainer.style.display = 'block';
+    setLoading(btn, true);
+    
+    // Animate progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90;
+        progressBar.style.width = progress + '%';
+        
+        if (progress < 30) {
+            progressText.textContent = 'Fetching weather data...';
+        } else if (progress < 60) {
+            progressText.textContent = 'Loading AI models...';
+        } else if (progress < 85) {
+            progressText.textContent = 'Generating predictions...';
+        } else {
+            progressText.textContent = 'Finalizing results...';
+        }
+    }, 200);
+    
+    fetch('/api/forecast', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            region: region,
+            date: date
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+        progressText.textContent = 'Complete!';
+        
+        setTimeout(() => {
+            progressContainer.style.display = 'none';
+            setLoading(btn, false);
+            btn.innerHTML = '<i class="fas fa-chart-line"></i> Generate Forecast';
+            
+            if (data.success) {
+                currentForecastData = data;
+                displayResults(data);
+                showToast('success', 'Forecast generated successfully!');
+            } else {
+                showToast('error', 'Error: ' + data.error);
+            }
+        }, 1000);
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        progressContainer.style.display = 'none';
+        setLoading(btn, false);
+        btn.innerHTML = '<i class="fas fa-chart-line"></i> Generate Forecast';
+        showToast('error', 'Network error. Please try again.');
+    });
+}
+
+function displayResults(data) {
+    // Hide no results, show sections
+    document.getElementById('noResults').style.display = 'none';
+    document.getElementById('summarySection').style.display = 'block';
+    document.getElementById('detailsSection').style.display = 'block';
+    document.getElementById('chartBtn').style.display = 'block';
+    
+    // Update summary cards
+    document.getElementById('peakDemand').textContent = data.summary.peak_demand + ' MW';
+    document.getElementById('peakHour').textContent = data.summary.peak_hour + ':00';
+    document.getElementById('totalDemand').textContent = data.summary.total_daily_demand + ' MWh';
+    document.getElementById('confidence').textContent = data.summary.average_confidence + '%';
+    
+    // Populate details table
+    const tbody = document.getElementById('detailsTableBody');
+    tbody.innerHTML = '';
+    
+    data.predictions.forEach(pred => {
+        const row = tbody.insertRow();
+        const confidenceClass = pred.confidence > 80 ? 'text-success' : 
+                               pred.confidence > 60 ? 'text-warning' : 'text-danger';
+        
+        row.innerHTML = `
+            <td><strong>${pred.hour}:00</strong></td>
+            <td>${pred.temperature}°C</td>
+            <td>${pred.humidity}%</td>
+            <td>${pred.wind_speed} km/h</td>
+            <td><strong class="text-primary">${pred.demand} MW</strong></td>
+            <td><span class="${confidenceClass}">${pred.confidence}%</span></td>
+        `;
+    });
+    
+    // Add animations
+    document.querySelectorAll('#summarySection .card').forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('slide-up');
+    });
+}
+
+function generateChart() {
+    if (!currentForecastData) {
+        showToast('error', 'No forecast data available');
+        return;
+    }
+    
+    const chartSection = document.getElementById('chartSection');
+    const chartLoading = document.getElementById('chartLoading');
+    const chartImage = document.getElementById('chartImage');
+    
+    chartSection.style.display = 'block';
+    chartLoading.style.display = 'block';
+    chartImage.innerHTML = '';
+    
+    const region = currentForecastData.region;
+    const date = currentForecastData.date;
+    
+    fetch(`/api/chart/${region}/${date}`)
+        .then(response => response.json())
+        .then(data => {
+            chartLoading.style.display = 'none';
+            if (data.image) {
+                chartImage.innerHTML = `<img src="${data.image}" class="img-fluid rounded" alt="Forecast Chart">`;
+                showToast('success', 'Chart generated successfully!');
+            } else {
+                chartImage.innerHTML = '<div class="alert alert-danger">Failed to generate chart</div>';
+            }
+        })
+        .catch(error => {
+            chartLoading.style.display = 'none';
+            chartImage.innerHTML = '<div class="alert alert-danger">Error generating chart</div>';
+            showToast('error', 'Chart generation failed');
+        });
+}
+
+function downloadChart() {
+    if (!currentForecastData) {
+        showToast('error', 'No chart to download');
+        return;
+    }
+    
+    const img = document.querySelector('#chartImage img');
+    if (img) {
+        const link = document.createElement('a');
+        link.download = `forecast_${currentForecastData.region}_${currentForecastData.date}.png`;
+        link.href = img.src;
+        link.click();
+        showToast('success', 'Chart downloaded!');
+    } else {
+        showToast('error', 'No chart image available');
+    }
+}
+
+function clearResults() {
+    currentForecastData = null;
+    document.getElementById('summarySection').style.display = 'none';
+    document.getElementById('chartSection').style.display = 'none';
+    document.getElementById('detailsSection').style.display = 'none';
+    document.getElementById('chartBtn').style.display = 'none';
+    document.getElementById('noResults').style.display = 'block';
+    showToast('success', 'Results cleared');
+}
+</script>
+{% endblock %}

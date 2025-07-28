@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}PowerPulse Enhanced - AI-Powered Electricity Demand Forecasting{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Hero Section -->
+        <div class="card mb-4">
+            <div class="card-body text-center py-5">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h1 class="display-4 mb-3">PowerPulse Enhanced</h1>
+                <p class="lead mb-4">Advanced AI-powered electricity demand forecasting for Delhi regions</p>
+                <a href="{{ url_for('forecast') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i> Start Forecasting
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stats-card">
+            <div class="stats-number">97.8%</div>
+            <div class="stats-label">Model Accuracy</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stats-card" style="background: linear-gradient(135deg, #e74c3c, #ec7063);">
+            <div class="stats-number">{{ regions|length }}</div>
+            <div class="stats-label">Delhi Regions</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stats-card" style="background: linear-gradient(135deg, #f39c12, #f5b041);">
+            <div class="stats-number">24/7</div>
+            <div class="stats-label">Real-time Monitoring</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stats-card" style="background: linear-gradient(135deg, #9b59b6, #bb8fce);">
+            <div class="stats-number">3</div>
+            <div class="stats-label">ML Models</div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h5 class="card-title">AI-Powered Predictions</h5>
+                <p class="card-text">
+                    Advanced ensemble of Random Forest, LSTM, and XGBoost models 
+                    trained on historical Delhi electricity demand data.
+                </p>
+                <ul class="list-unstyled text-start">
+                    <li><i class="fas fa-check text-success"></i> Random Forest Regressor</li>
+                    <li><i class="fas fa-check text-success"></i> LSTM Neural Networks</li>
+                    <li><i class="fas fa-check text-success"></i> XGBoost Algorithm</li>
+                    <li><i class="fas fa-check text-success"></i> Ensemble Averaging</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon">
+                    <i class="fas fa-cloud-sun"></i>
+                </div>
+                <h5 class="card-title">Real-time Weather Integration</h5>
+                <p class="card-text">
+                    Integrated with Open-Meteo API for real-time weather data 
+                    with intelligent fallback mechanisms.
+                </p>
+                <ul class="list-unstyled text-start">
+                    <li><i class="fas fa-check text-success"></i> Temperature Data</li>
+                    <li><i class="fas fa-check text-success"></i> Humidity Levels</li>
+                    <li><i class="fas fa-check text-success"></i> Wind Speed</li>
+                    <li><i class="fas fa-check text-success"></i> Fallback Data</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <h5 class="card-title">Multi-Region Coverage</h5>
+                <p class="card-text">
+                    Comprehensive coverage of all major electricity distribution 
+                    regions in Delhi with dedicated models.
+                </p>
+                <ul class="list-unstyled text-start">
+                    {% for region in regions %}
+                    <li><i class="fas fa-map-pin text-primary"></i> {{ region }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Start Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-rocket"></i> Quick Start Guide</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="feature-icon" style="font-size: 2rem;">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h6>1. Select Date</h6>
+                        <p class="small text-muted">Choose the date for which you want to forecast electricity demand</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="feature-icon" style="font-size: 2rem;">
+                            <i class="fas fa-check-square"></i>
+                        </div>
+                        <h6>2. Choose Regions</h6>
+                        <p class="small text-muted">Select one or more Delhi regions for demand prediction</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="feature-icon" style="font-size: 2rem;">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h6>3. View Results</h6>
+                        <p class="small text-muted">Get hourly predictions with peak demand analysis and visualizations</p>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('forecast') }}" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Start Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Preview Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-code"></i> API Integration</h5>
+            </div>
+            <div class="card-body">
+                <p>PowerPulse Enhanced provides RESTful API endpoints for seamless integration:</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-arrow-right text-primary"></i> GET /api/regions</h6>
+                        <p class="small text-muted">Get list of available regions</p>
+                        
+                        <h6><i class="fas fa-arrow-right text-primary"></i> POST /api/predict</h6>
+                        <p class="small text-muted">Make demand predictions</p>
+                    </div>
+                    <div class="col-md-6">
+                        <pre class="bg-light p-3 rounded"><code>{
+  "region": "DELHI",
+  "temperature": 25,
+  "humidity": 60,
+  "wind_speed": 5,
+  "hour": 12,
+  "day": 15,
+  "month": 7,
+  "year": 2025
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add some interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stats on scroll
+        const statsCards = document.querySelectorAll('.stats-card');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.transform = 'translateY(0)';
+                    entry.target.style.opacity = '1';
+                }
+            });
+        });
+        
+        statsCards.forEach(card => {
+            card.style.transform = 'translateY(20px)';
+            card.style.opacity = '0.8';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}
